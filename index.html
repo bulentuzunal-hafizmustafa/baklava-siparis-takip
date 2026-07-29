@@ -11,89 +11,126 @@
 <style>
 html,body{margin:0;padding:0;background:#f5f5f7;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
 *{box-sizing:border-box}
-.app-header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #ddd;padding:calc(12px + env(safe-area-inset-top)) 14px 12px}
-.app-header h1{font-size:20px;margin:0;font-weight:700}
-.app-header p{font-size:12px;color:#777;margin:4px 0 0}
+.header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #ddd;padding:calc(12px + env(safe-area-inset-top)) 14px 10px}
+.header h1{margin:0;font-size:20px} .header p{margin:4px 0 8px;color:#777;font-size:12px}
+.search{width:100%;height:42px;border:1px solid #bbb;border-radius:9px;padding:0 12px;font-size:16px;background:#fafafa}
 main{max-width:760px;margin:0 auto;padding:12px 12px calc(88px + env(safe-area-inset-bottom))}
-.product{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e1e1e1;border-radius:11px;padding:10px 11px;margin-bottom:7px;min-height:62px}
-.product-name{flex:1;min-width:0;font-size:14px;line-height:1.25;overflow-wrap:anywhere}
-.qty{width:72px;height:44px;flex:0 0 72px;border:1px solid #aaa;border-radius:9px;background:#fafafa;text-align:center;font-size:18px;-webkit-appearance:none;appearance:none}
-.bottom{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(255,255,255,.96);border-top:1px solid #ddd;padding:9px 12px calc(9px + env(safe-area-inset-bottom));}
-.primary{display:block;width:100%;height:50px;border:0;border-radius:10px;background:#222;color:#fff;font-size:15px;font-weight:700}
+.product{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e1e1e1;border-radius:11px;padding:9px 10px;margin-bottom:7px;min-height:62px}
+.product.active{border-color:#78a878;background:#f0faf0}
+.name{flex:1;min-width:0;font-size:14px;line-height:1.25;overflow-wrap:anywhere}
+.controls{display:flex;align-items:center;gap:4px}
+.step{width:38px;height:40px;border:1px solid #bbb;border-radius:8px;background:#eee;font-size:21px;line-height:1}
+.qty{width:58px;height:40px;border:1px solid #aaa;border-radius:8px;background:#fafafa;text-align:center;font-size:17px}
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(255,255,255,.97);border-top:1px solid #ddd;padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:flex;gap:8px}
+.summaryBtn{flex:1;height:48px;border:0;border-radius:10px;background:#222;color:#fff;font-size:15px;font-weight:700}
+.count{min-width:100px;height:48px;border:1px solid #ccc;border-radius:10px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:#777}
+.count strong{font-size:16px;color:#222}
 .panel{display:none;position:fixed;inset:0;z-index:30;background:#f5f5f7;overflow:auto;-webkit-overflow-scrolling:touch}
-.panel-header{position:sticky;top:0;z-index:31;background:#fff;border-bottom:1px solid #ddd;padding:calc(12px + env(safe-area-inset-top)) 12px 10px;display:flex;align-items:center;gap:10px}
-.panel-header h2{font-size:19px;margin:0;flex:1}
-.close{height:40px;padding:0 14px;border:0;border-radius:8px;background:#e6e6e8;font-weight:600}
+.panelHead{position:sticky;top:0;z-index:31;background:#fff;border-bottom:1px solid #ddd;padding:calc(12px + env(safe-area-inset-top)) 12px 10px;display:flex;align-items:center;gap:10px}
+.panelHead h2{font-size:19px;margin:0;flex:1} .close{height:40px;padding:0 14px;border:0;border-radius:8px;background:#e6e6e8;font-weight:600}
 .card{background:#fff;margin:12px;border:1px solid #ddd;border-radius:12px;overflow:hidden}
-.result{display:flex;gap:12px;justify-content:space-between;padding:13px;border-bottom:1px solid #eee;font-size:14px}
-.result:last-child{border-bottom:0}
-.total{font-size:17px;font-weight:800}
-.error{margin:12px;padding:12px;background:#fff0f0;border:1px solid #e4aaaa;border-radius:10px;color:#8a0000;display:none}
+.result{display:flex;justify-content:space-between;gap:12px;padding:13px;border-bottom:1px solid #eee;font-size:14px}
+.result:last-child{border-bottom:0} .total{font-size:17px;font-weight:800}
+.empty{text-align:center;color:#777;padding:25px}
 </style>
 </head>
 <body>
-<header class="app-header">
-<h1>Baklava Sipariş Takip</h1>
-<p>Her gün yeni sipariş — başlangıç değerleri 0</p>
+<header class="header">
+  <h1>Baklava Sipariş Takip</h1>
+  <p>57 ürün — Excel sırası ile</p>
+  <input id="search" class="search" type="search" placeholder="Ürün ara..." autocomplete="off">
 </header>
-<main id="products"></main>
-<div class="bottom"><button class="primary" id="summaryButton" type="button">FABRİKA SİPARİŞ ÖZETİ</button></div>
 
-<section class="panel" id="summaryPanel" aria-hidden="true">
-<div class="panel-header"><h2>Fabrika Sipariş Özeti</h2><button class="close" id="closeButton" type="button">Kapat</button></div>
-<div class="error" id="errorBox"></div>
-<div class="card" id="results"></div>
-<div class="card"><div class="result total"><span>TOPLAM TEPSİ ADET</span><span id="total">0</span></div></div>
+<main id="products"></main>
+
+<div class="bottom">
+  <div class="count"><span>GİRİLEN ÜRÜN</span><strong id="count">0 / 57</strong></div>
+  <button id="summaryButton" class="summaryBtn" type="button">FABRİKA SİPARİŞ ÖZETİ</button>
+</div>
+
+<section id="panel" class="panel">
+  <div class="panelHead">
+    <h2>Fabrika Sipariş Özeti</h2>
+    <button id="closeButton" class="close" type="button">Kapat</button>
+  </div>
+  <div id="results" class="card"></div>
+  <div class="card"><div class="result total"><span>TOPLAM TEPSİ ADET</span><span id="total">0</span></div></div>
 </section>
 
 <script>
 (function(){
 "use strict";
-var DATA = {"products":[["Fıstıklı Ankara Baklava (XL Kutu)",[["FISTIKLI ANKARA",42.0,91.0]]],["Premium Fıstıklı Cevizli Karışık Baklava (M Kutu)",[["FISTIKLI DÜRÜM",7.0,112.0],["FISTIKLI ÇİKOLATALI",4.0,88.0],["FISTIKLI DİLBER",5.0,91.0],["CEVİZLİ PADİŞAH",4.0,70.0],["FISTIKLI PADİŞAH",4.0,70.0],["CEVİZLİ SARAY SARMA",5.0,108.0]]],["Premium Fıstıklı Karışık Baklava (M Kutu)",[["FISTIKLI DÜRÜM",7.0,112.0],["FISTIKLI ÇİKOLATALI",4.0,88.0],["FISTIKLI DİLBER",5.0,91.0],["FISTIKLI ANKARA",5.0,91.0],["FISTIKLI PADİŞAH",4.0,70.0],["FISTIKLI SARAY SARMA",5.0,108.0]]],["Premium Karışık Baklava (L Kutu)",[["CEVİZLİ ANKARA",6.0,91.0],["FISTIKLI SARAY SARMA",5.0,108.0],["FISTIKLI ÇİKOLATALI",5.0,88.0],["FISTIKLI PRENSES",6.0,56.0],["FISTIKLI ANKARA",6.0,91.0],["FISTIKLI DÜRÜM",8.0,112.0]]],["Premium Karışık Fıstıklı Baklava (XL Kutu)",[["FISTIKLI KIVRIM",9.0,72.0],["FISTIKLI PRENSES",7.0,56.0],["FISTIKLI BURMA KADAYIF",9.0,70.0],["FISTIKLI DÜRÜM",9.0,112.0],["FISTIKLI ANKARA",6.0,91.0]]],["Fıstıklı Cevizli Karışık Baklava (S Kutu)",[["FISTIKLI DÜRÜM",7.0,112.0],["CEVİZLİ EV BAKLAVASI",4.0,73.0],["FISTIKLI PADİŞAH",4.0,70.0],["CEVİZLİ ANKARA",5.0,91.0]]],["Karışık Baklava (S Kutu)",[["CEVİZLİ ANKARA",5.0,91.0],["FISTIKLI SARAY SARMA",5.0,108.0],["FISTIKLI ÇİKOLATALI",5.0,88.0],["FISTIKLI DÜRÜM",7.0,112.0]]],["Fıstıklı Cevizli Karışık Baklava (M Kutu)",[["FISTIKLI DÜRÜM",7.0,112.0],["CEVİZLİ SARAY SARMA",5.0,108.0],["CEVİZLİ PADİŞAH",4.0,70.0],["CEVİZLİ ANKARA",5.0,91.0],["FISTIKLI SARAY SARMA",5.0,108.0],["FISTIKLI ANKARA",5.0,91.0]]],["Fıstıklı Karışık Baklava (XL Kutu)",[["FISTIKLI SARAY SARMA",6.0,108.0],["FISTIKLI KLASİK BAKLAVA",6.0,91.0],["FISTIKLI PADİŞAH",5.0,70.0],["FISTIKLI KURU BAKLAVA",5.0,88.0],["FISTIKLI DÜRÜM",9.0,112.0],["FISTIKLI ÇİKOLATALI",5.0,88.0],["FISTIKLI DİLBER",6.0,91.0],["FISTIKLI ANKARA",6.0,91.0]]],["Fıstıklı Kuru Baklava (XL Kutu)",[["FISTIKLI KURU BAKLAVA",40.0,88.0]]],["Fıstıklı Klasik Baklava (XL Kutu)",[["FISTIKLI KLASİK BAKLAVA",42.0,91.0]]],["Fıstıklı Havuç Dilimi Baklava (XL Kutu)",[["FISTIKLI HAVUÇ",10.0,23.0]]],["Fıstıklı Dürüm Baklava (XL Kutu)",[["FISTIKLI DÜRÜM",63.0,112.0]]],["Fıstıklı Padişah Baklava (XL Kutu)",[["FISTIKLI PADİŞAH",35.0,70.0]]],["Fıstıklı Kıvrım Baklava (XL Kutu)",[["FISTIKLI KIVRIM",36.0,72.0]]],["Fıstıklı Saray Sarma Baklava (XL Kutu)",[["FISTIKLI SARAY SARMA",45.0,108.0]]],["Fıstıklı Dilber Baklava (XL Kutu)",[["FISTIKLI DİLBER",42.0,91.0]]],["Fıstıklı Sarı Burma Baklava (XL Kutu)",[["FISTIKLI SARI BURMA",45.0,85.0]]],["Fıstıklı Prenses Baklava (XL Kutu)",[["FISTIKLI PRENSES",28.0,56.0]]],["Fıstıklı Prenses Baklava (L Kutu)",[["FISTIKLI PRENSES",23.0,56.0]]],["Çikolatalı Fıstıklı Baklava (L Kutu)",[["FISTIKLI ÇİKOLATALI",35.0,88.0]]],["Fıstıklı Padişah Baklava (L Kutu)",[["FISTIKLI PADİŞAH",28.0,70.0]]],["Fıstıklı Dürüm Baklava (M Kutu)",[["FISTIKLI DÜRÜM",35.0,112.0]]],["Fıstıklı Dilber Baklava (S Kutu)",[["FISTIKLI DİLBER",20.0,91.0]]],["Fıstıklı Antep Burma Kadayıf (S Kutu)",[["FISTIKLI BURMA KADAYIF",27.0,70.0]]],["Fıstıklı Kuru Baklava (S Kutu)",[["FISTIKLI KURU BAKLAVA",20.0,88.0]]],["Fıstıklı Klasik Baklava (S Kutu)",[["FISTIKLI KLASİK BAKLAVA",20.0,91.0]]],["Fıstıklı Sarı Burma Baklava (S Kutu)",[["FISTIKLI SARI BURMA",17.0,85.0]]],["Fıstıklı Padişah Baklava (S Kutu)",[["FISTIKLI PADİŞAH",16.0,70.0]]],["Fıstıklı Saray Sarma Baklava (S Kutu)",[["FISTIKLI SARAY SARMA",25.0,108.0]]],["Fıstıklı Ankara Baklava (S Kutu)",[["FISTIKLI ANKARA",20.0,91.0]]],["Fıstıklı Dürüm Baklava (S Kutu)",[["FISTIKLI DÜRÜM",28.0,112.0]]],["Fıstıklı Prenses Baklava (S Kutu)",[["FISTIKLI PRENSES",10.0,56.0]]],["Fıstıklı Kıvrım Baklava (S Kutu)",[["FISTIKLI KIVRIM",14.0,72.0]]],["Çikolatalı Fıstıklı Baklava (S Kutu)",[["FISTIKLI ÇİKOLATALI",20.0,88.0]]],["Fıstıklı Havuç Dilimi Baklava (S Kutu)",[["FISTIKLI HAVUÇ",5.0,23.0]]],["Fıstıklı Dürüm Baklava (L Kutu)",[["FISTIKLI DÜRÜM",52.0,112.0]]],["Cevizli Klasik Baklava (XL Kutu)",[["CEVİZLİ BAKLAVA",42.0,91.0]]],["Cevizli Ankara Baklava (XL Kutu)",[["CEVİZLİ ANKARA",42.0,91.0]]],["Cevizli Ev Baklava (XL Kutu)",[["CEVİZLİ EV BAKLAVASI",35.0,73.0]]],["Cevizli Kare Baklava (XL Kutu)",[["CEVİZLİ KARE BAKLAVA",24.0,54.0]]],["Cevizli Kıvrım Baklava (XL Kutu)",[["CEVİZLİ KIVRIM",36.0,72.0]]],["Cevizli Padişah Baklava (XL Kutu)",[["CEVİZLİ PADİŞAH",35.0,70.0]]],["Cevizli Sarı Burma Baklava (XL Kutu)",[["CEVİZLİ SARI BURMA",45.0,85.0]]],["Karışık Cevizli Baklava (XL Kutu)",[["CEVİZLİ ANKARA",6.0,91.0],["CEVİZLİ PADİŞAH",5.0,70.0],["CEVİZLİ SARAY SARMA",6.0,108.0],["CEVİZLİ BAKLAVA",6.0,91.0],["CEVİZLİ SARI BURMA",9.0,85.0],["CEVİZLİ KIVRIM",9.0,72.0]]],["Karışık Cevizli Baklava (L Kutu)",[["CEVİZLİ SARAY SARMA",5.0,108.0],["CEVİZLİ KIVRIM",8.0,72.0],["CEVİZLİ PADİŞAH",4.0,70.0],["CEVİZLİ SARI BURMA",8.0,85.0],["CEVİZLİ ANKARA",5.0,91.0]]],["Cevizli Saray Sarma Baklava (S Kutu)",[["CEVİZLİ SARAY SARMA",25.0,108.0]]],["Cevizli Klasik Baklava (S Kutu)",[["CEVİZLİ BAKLAVA",20.0,91.0]]],["Cevizli Ev Baklava (S Kutu)",[["CEVİZLİ EV BAKLAVASI",16.0,73.0]]],["Cevizli Padişah Baklava (S Kutu)",[["CEVİZLİ PADİŞAH",16.0,70.0]]],["Karışık Cevizli Baklava (S Kutu)",[["CEVİZLİ SARAY SARMA",5.0,108.0],["CEVİZLİ BAKLAVA",5.0,91.0],["CEVİZLİ PADİŞAH",4.0,70.0],["CEVİZLİ ANKARA",5.0,91.0]]],["Cevizli Ankara Baklava (S Kutu)",[["CEVİZLİ ANKARA",20.0,91.0]]],["Cevizli Kıvrım Baklava (S Kutu)",[["CEVİZLİ KIVRIM",14.0,72.0]]],["Cevizli Sarı Burma Baklava (S Kutu)",[["CEVİZLİ SARI BURMA",17.0,85.0]]],["Fıstıklı Cevizli Karışık Baklava (XL Kutu)",[["FISTIKLI ANKARA",6.0,91.0],["FISTIKLI ÇİKOLATALI",5.0,88.0],["FISTIKLI DÜRÜM",9.0,112.0],["CEVİZLİ KIVRIM",9.0,72.0],["FISTIKLI PADİŞAH",5.0,70.0],["CEVİZLİ BAKLAVA",6.0,91.0],["FISTIKLI SARAY SARMA",6.0,108.0]]],["Padişahlı Karışık Baklava (XL Kutu)",[["FISTIKLI KIVRIM",9.0,72.0],["CEVİZLİ KIVRIM",9.0,72.0],["FISTIKLI PADİŞAH",5.0,70.0],["CEVİZLİ PADİŞAH",5.0,70.0],["FISTIKLI DÜRÜM",9.0,112.0],["CEVİZLİ ANKARA",6.0,91.0]]],["Fıstıklı Cevizli Karışık Baklava (L Kutu)",[["FISTIKLI DÜRÜM",8.0,112.0],["CEVİZLİ SARAY SARMA",5.0,108.0],["FISTIKLI KIVRIM",8.0,72.0],["CEVİZLİ BAKLAVA",6.0,91.0],["FISTIKLI BURMA KADAYIF",8.0,70.0]]]],"factoryProducts":["FISTIKLI ANKARA","FISTIKLI BURMA KADAYIF","FISTIKLI ÇİKOLATALI","FISTIKLI DİLBER","FISTIKLI DÜRÜM","FISTIKLI HAVUÇ","FISTIKLI KLASİK BAKLAVA","FISTIKLI KIVRIM","FISTIKLI KURU BAKLAVA","FISTIKLI PADİŞAH","FISTIKLI PRENSES","FISTIKLI SARAY SARMA","FISTIKLI SARI BURMA","CEVİZLİ ANKARA","CEVİZLİ BAKLAVA","CEVİZLİ EV BAKLAVASI","CEVİZLİ KARE BAKLAVA","CEVİZLİ KIVRIM","CEVİZLİ PADİŞAH","CEVİZLİ SARAY SARMA","CEVİZLİ SARI BURMA"]};
-var products = document.getElementById("products");
-var summaryButton = document.getElementById("summaryButton");
-var summaryPanel = document.getElementById("summaryPanel");
-var closeButton = document.getElementById("closeButton");
-var results = document.getElementById("results");
-var totalEl = document.getElementById("total");
-var errorBox = document.getElementById("errorBox");
+var DATA={"products":[{"name":"Cevizli Ankara Baklava (S Kutu)","allocations":[["CEVİZLİ ANKARA",20.0,91.0]]},{"name":"Cevizli Ankara Baklava (XL Kutu)","allocations":[["CEVİZLİ ANKARA",42.0,91.0]]},{"name":"Cevizli Ev Baklava (S Kutu)","allocations":[["CEVİZLİ EV BAKLAVASI",16.0,73.0]]},{"name":"Cevizli Ev Baklava (XL Kutu)","allocations":[["CEVİZLİ EV BAKLAVASI",35.0,73.0]]},{"name":"Cevizli Kare Baklava (XL Kutu)","allocations":[["CEVİZLİ KARE BAKLAVA",24.0,54.0]]},{"name":"Cevizli Kıvrım Baklava (S Kutu)","allocations":[["CEVİZLİ KIVRIM",14.0,72.0]]},{"name":"Cevizli Kıvrım Baklava (XL Kutu)","allocations":[["CEVİZLİ KIVRIM",36.0,72.0]]},{"name":"Cevizli Klasik Baklava (S Kutu)","allocations":[["CEVİZLİ BAKLAVA",20.0,91.0]]},{"name":"Cevizli Klasik Baklava (XL Kutu)","allocations":[["CEVİZLİ BAKLAVA",42.0,91.0]]},{"name":"Cevizli Padişah Baklava (S Kutu)","allocations":[["CEVİZLİ PADİŞAH",16.0,70.0]]},{"name":"Cevizli Padişah Baklava (XL Kutu)","allocations":[["CEVİZLİ PADİŞAH",35.0,70.0]]},{"name":"Cevizli Saray Sarma Baklava (S Kutu)","allocations":[["CEVİZLİ SARAY SARMA",25.0,108.0]]},{"name":"Cevizli Sarı Burma Baklava (S Kutu)","allocations":[["CEVİZLİ SARI BURMA",17.0,85.0]]},{"name":"Cevizli Sarı Burma Baklava (XL Kutu)","allocations":[["CEVİZLİ SARI BURMA",45.0,85.0]]},{"name":"Çikolatalı Fıstıklı Baklava (L Kutu)","allocations":[["FISTIKLI ÇİKOLATALI",35.0,88.0]]},{"name":"Çikolatalı Fıstıklı Baklava (S Kutu)","allocations":[["FISTIKLI ÇİKOLATALI",20.0,88.0]]},{"name":"Fıstıklı Ankara Baklava (S Kutu)","allocations":[["FISTIKLI ANKARA",20.0,91.0]]},{"name":"Fıstıklı Ankara Baklava (XL Kutu)","allocations":[["FISTIKLI ANKARA",42.0,91.0]]},{"name":"Fıstıklı Antep Burma Kadayıf (S Kutu)","allocations":[["FISTIKLI BURMA KADAYIF",27.0,70.0]]},{"name":"Fıstıklı Cevizli Karışık Baklava (L Kutu)","allocations":[["FISTIKLI DÜRÜM",8.0,112.0],["CEVİZLİ SARAY SARMA",5.0,108.0],["FISTIKLI KIVRIM",8.0,72.0],["CEVİZLİ BAKLAVA",6.0,91.0],["FISTIKLI BURMA KADAYIF",8.0,70.0]]},{"name":"Fıstıklı Cevizli Karışık Baklava (M Kutu)","allocations":[["FISTIKLI DÜRÜM",7.0,112.0],["CEVİZLİ SARAY SARMA",5.0,108.0],["CEVİZLİ PADİŞAH",4.0,70.0],["CEVİZLİ ANKARA",5.0,91.0],["FISTIKLI SARAY SARMA",5.0,108.0],["FISTIKLI ANKARA",5.0,91.0]]},{"name":"Fıstıklı Cevizli Karışık Baklava (S Kutu)","allocations":[["FISTIKLI DÜRÜM",7.0,112.0],["CEVİZLİ EV BAKLAVASI",4.0,73.0],["FISTIKLI PADİŞAH",4.0,70.0],["CEVİZLİ ANKARA",5.0,91.0]]},{"name":"Fıstıklı Cevizli Karışık Baklava (XL Kutu)","allocations":[["FISTIKLI ANKARA",6.0,91.0],["FISTIKLI ÇİKOLATALI",5.0,88.0],["FISTIKLI DÜRÜM",9.0,112.0],["CEVİZLİ KIVRIM",9.0,72.0],["FISTIKLI PADİŞAH",5.0,70.0],["CEVİZLİ BAKLAVA",6.0,91.0],["FISTIKLI SARAY SARMA",6.0,108.0]]},{"name":"Fıstıklı Dilber Baklava (S Kutu)","allocations":[["FISTIKLI DİLBER",20.0,91.0]]},{"name":"Fıstıklı Dilber Baklava (XL Kutu)","allocations":[["FISTIKLI DİLBER",42.0,91.0]]},{"name":"Fıstıklı Dürüm Baklava (L Kutu)","allocations":[["FISTIKLI DÜRÜM",52.0,112.0]]},{"name":"Fıstıklı Dürüm Baklava (M Kutu)","allocations":[["FISTIKLI DÜRÜM",35.0,112.0]]},{"name":"Fıstıklı Dürüm Baklava (S Kutu)","allocations":[["FISTIKLI DÜRÜM",28.0,112.0]]},{"name":"Fıstıklı Dürüm Baklava (XL Kutu)","allocations":[["FISTIKLI DÜRÜM",63.0,112.0]]},{"name":"Fıstıklı Havuç Dilimi Baklava (S Kutu)","allocations":[["FISTIKLI HAVUÇ",5.0,23.0]]},{"name":"Fıstıklı Havuç Dilimi Baklava (XL Kutu)","allocations":[["FISTIKLI HAVUÇ",10.0,23.0]]},{"name":"Fıstıklı Karışık Baklava (XL Kutu)","allocations":[["FISTIKLI SARAY SARMA",6.0,108.0],["FISTIKLI KLASİK BAKLAVA",6.0,91.0],["FISTIKLI PADİŞAH",5.0,70.0],["FISTIKLI KURU BAKLAVA",5.0,88.0],["FISTIKLI DÜRÜM",9.0,112.0],["FISTIKLI ÇİKOLATALI",5.0,88.0],["FISTIKLI DİLBER",6.0,91.0],["FISTIKLI ANKARA",6.0,91.0]]},{"name":"Fıstıklı Kıvrım Baklava (S Kutu)","allocations":[["FISTIKLI KIVRIM",14.0,72.0]]},{"name":"Fıstıklı Kıvrım Baklava (XL Kutu)","allocations":[["FISTIKLI KIVRIM",36.0,72.0]]},{"name":"Fıstıklı Klasik Baklava (S Kutu)","allocations":[["FISTIKLI KLASİK BAKLAVA",20.0,91.0]]},{"name":"Fıstıklı Klasik Baklava (XL Kutu)","allocations":[["FISTIKLI KLASİK BAKLAVA",42.0,91.0]]},{"name":"Fıstıklı Kuru Baklava (S Kutu)","allocations":[["FISTIKLI KURU BAKLAVA",20.0,88.0]]},{"name":"Fıstıklı Kuru Baklava (XL Kutu)","allocations":[["FISTIKLI KURU BAKLAVA",40.0,88.0]]},{"name":"Fıstıklı Padişah Baklava (L Kutu)","allocations":[["FISTIKLI PADİŞAH",28.0,70.0]]},{"name":"Fıstıklı Padişah Baklava (S Kutu)","allocations":[["FISTIKLI PADİŞAH",16.0,70.0]]},{"name":"Fıstıklı Padişah Baklava (XL Kutu)","allocations":[["FISTIKLI PADİŞAH",35.0,70.0]]},{"name":"Fıstıklı Prenses Baklava (L Kutu)","allocations":[["FISTIKLI PRENSES",23.0,56.0]]},{"name":"Fıstıklı Prenses Baklava (S Kutu)","allocations":[["FISTIKLI PRENSES",10.0,56.0]]},{"name":"Fıstıklı Prenses Baklava (XL Kutu)","allocations":[["FISTIKLI PRENSES",28.0,56.0]]},{"name":"Fıstıklı Saray Sarma Baklava (S Kutu)","allocations":[["FISTIKLI SARAY SARMA",25.0,108.0]]},{"name":"Fıstıklı Saray Sarma Baklava (XL Kutu)","allocations":[["FISTIKLI SARAY SARMA",45.0,108.0]]},{"name":"Fıstıklı Sarı Burma Baklava (S Kutu)","allocations":[["FISTIKLI SARI BURMA",17.0,85.0]]},{"name":"Fıstıklı Sarı Burma Baklava (XL Kutu)","allocations":[["FISTIKLI SARI BURMA",45.0,85.0]]},{"name":"Karışık Baklava (S Kutu)","allocations":[["CEVİZLİ ANKARA",5.0,91.0],["FISTIKLI SARAY SARMA",5.0,108.0],["FISTIKLI ÇİKOLATALI",5.0,88.0],["FISTIKLI DÜRÜM",7.0,112.0]]},{"name":"Karışık Cevizli Baklava (L Kutu)","allocations":[["CEVİZLİ SARAY SARMA",5.0,108.0],["CEVİZLİ KIVRIM",8.0,72.0],["CEVİZLİ PADİŞAH",4.0,70.0],["CEVİZLİ SARI BURMA",8.0,85.0],["CEVİZLİ ANKARA",5.0,91.0]]},{"name":"Karışık Cevizli Baklava (S Kutu)","allocations":[["CEVİZLİ SARAY SARMA",5.0,108.0],["CEVİZLİ BAKLAVA",5.0,91.0],["CEVİZLİ PADİŞAH",4.0,70.0],["CEVİZLİ ANKARA",5.0,91.0]]},{"name":"Karışık Cevizli Baklava (XL Kutu)","allocations":[["CEVİZLİ ANKARA",6.0,91.0],["CEVİZLİ PADİŞAH",5.0,70.0],["CEVİZLİ SARAY SARMA",6.0,108.0],["CEVİZLİ BAKLAVA",6.0,91.0],["CEVİZLİ SARI BURMA",9.0,85.0],["CEVİZLİ KIVRIM",9.0,72.0]]},{"name":"Padişahlı Karışık Baklava (XL Kutu)","allocations":[["FISTIKLI KIVRIM",9.0,72.0],["CEVİZLİ KIVRIM",9.0,72.0],["FISTIKLI PADİŞAH",5.0,70.0],["CEVİZLİ PADİŞAH",5.0,70.0],["FISTIKLI DÜRÜM",9.0,112.0],["CEVİZLİ ANKARA",6.0,91.0]]},{"name":"Premium Fıstıklı Cevizli Karışık Baklava (M Kutu)","allocations":[["FISTIKLI DÜRÜM",7.0,112.0],["FISTIKLI ÇİKOLATALI",4.0,88.0],["FISTIKLI DİLBER",5.0,91.0],["CEVİZLİ PADİŞAH",4.0,70.0],["FISTIKLI PADİŞAH",4.0,70.0],["CEVİZLİ SARAY SARMA",5.0,108.0]]},{"name":"Premium Fıstıklı Karışık Baklava (M Kutu)","allocations":[["FISTIKLI DÜRÜM",7.0,112.0],["FISTIKLI ÇİKOLATALI",4.0,88.0],["FISTIKLI DİLBER",5.0,91.0],["FISTIKLI ANKARA",5.0,91.0],["FISTIKLI PADİŞAH",4.0,70.0],["FISTIKLI SARAY SARMA",5.0,108.0]]},{"name":"Premium Karışık Baklava (L Kutu)","allocations":[["CEVİZLİ ANKARA",6.0,91.0],["FISTIKLI SARAY SARMA",5.0,108.0],["FISTIKLI ÇİKOLATALI",5.0,88.0],["FISTIKLI PRENSES",6.0,56.0],["FISTIKLI ANKARA",6.0,91.0],["FISTIKLI DÜRÜM",8.0,112.0]]},{"name":"Premium Karışık Fıstıklı Baklava (XL Kutu)","allocations":[["FISTIKLI KIVRIM",9.0,72.0],["FISTIKLI PRENSES",7.0,56.0],["FISTIKLI BURMA KADAYIF",9.0,70.0],["FISTIKLI DÜRÜM",9.0,112.0],["FISTIKLI ANKARA",6.0,91.0]]}],"factoryProducts":["FISTIKLI ANKARA","FISTIKLI BURMA KADAYIF","FISTIKLI ÇİKOLATALI","FISTIKLI DİLBER","FISTIKLI DÜRÜM","FISTIKLI HAVUÇ","FISTIKLI KLASİK BAKLAVA","FISTIKLI KIVRIM","FISTIKLI KURU BAKLAVA","FISTIKLI PADİŞAH","FISTIKLI PRENSES","FISTIKLI SARAY SARMA","FISTIKLI SARI BURMA","CEVİZLİ ANKARA","CEVİZLİ BAKLAVA","CEVİZLİ EV BAKLAVASI","CEVİZLİ KARE BAKLAVA","CEVİZLİ KIVRIM","CEVİZLİ PADİŞAH","CEVİZLİ SARAY SARMA","CEVİZLİ SARI BURMA"]};
+var productsEl=document.getElementById("products");
+var search=document.getElementById("search");
+var countEl=document.getElementById("count");
+var panel=document.getElementById("panel");
+var results=document.getElementById("results");
+var totalEl=document.getElementById("total");
 
-function makeRow(product,index){
-  var row=document.createElement("div"); row.className="product";
-  var name=document.createElement("div"); name.className="product-name"; name.textContent=product[0];
-  var input=document.createElement("input"); input.className="qty"; input.type="number"; input.inputMode="numeric"; input.pattern="[0-9]*"; input.min="0"; input.step="1"; input.value="0"; input.setAttribute("data-index",String(index));
-  row.appendChild(name); row.appendChild(input); return row;
+var values=[];
+for(var i=0;i<DATA.products.length;i++) values.push(0);
+
+function fmt(n){return Math.abs(n-Math.round(n))<1e-10?String(Math.round(n)):n.toFixed(2).replace(".",",");}
+
+function updateCount(){
+  var c=0;
+  for(var i=0;i<values.length;i++) if(Number(values[i])>0)c++;
+  countEl.textContent=c+" / "+values.length;
 }
-for(var i=0;i<DATA.products.length;i++) products.appendChild(makeRow(DATA.products[i],i));
 
+function makeProduct(i){
+  var p=DATA.products[i];
+  var row=document.createElement("div"); row.className="product"; row.setAttribute("data-index",String(i));
+  var name=document.createElement("div"); name.className="name"; name.textContent=p.name;
+  var controls=document.createElement("div"); controls.className="controls";
+  var minus=document.createElement("button"); minus.className="step"; minus.type="button"; minus.textContent="−";
+  var input=document.createElement("input"); input.className="qty"; input.type="number"; input.inputMode="numeric"; input.min="0"; input.step="1"; input.value="0";
+  var plus=document.createElement("button"); plus.className="step"; plus.type="button"; plus.textContent="+";
+  function set(v){
+    v=Math.max(0,Math.floor(Number(v)||0)); values[i]=v; input.value=String(v);
+    row.className=v>0?"product active":"product"; updateCount();
+  }
+  minus.addEventListener("click",function(){set(values[i]-1);});
+  plus.addEventListener("click",function(){set(values[i]+1);});
+  input.addEventListener("input",function(){set(input.value);});
+  controls.appendChild(minus); controls.appendChild(input); controls.appendChild(plus);
+  row.appendChild(name); row.appendChild(controls);
+  return row;
+}
+
+function render(){
+  productsEl.innerHTML="";
+  var q=search.value.toLocaleLowerCase("tr-TR").trim(), shown=0;
+  for(var i=0;i<DATA.products.length;i++){
+    var name=DATA.products[i].name.toLocaleLowerCase("tr-TR");
+    if(!q || name.indexOf(q)>=0){productsEl.appendChild(makeProduct(i));shown++;}
+  }
+  if(!shown){var e=document.createElement("div");e.className="empty";e.textContent="Ürün bulunamadı.";productsEl.appendChild(e);}
+}
 function calculate(){
   var totals={}; for(var i=0;i<DATA.factoryProducts.length;i++) totals[DATA.factoryProducts[i]]=0;
-  var inputs=document.querySelectorAll("input[data-index]");
-  for(var j=0;j<inputs.length;j++){
-    var q=Number(inputs[j].value); if(!isFinite(q)) q=0;
-    var p=DATA.products[Number(inputs[j].getAttribute("data-index"))];
-    for(var k=0;k<p[1].length;k++){
-      var a=p[1][k]; totals[a[0]]=(totals[a[0]]||0)+q*a[1]/a[2];
-    }
+  for(var i=0;i<DATA.products.length;i++){
+    var q=Number(values[i])||0, a=DATA.products[i].allocations;
+    for(var j=0;j<a.length;j++) totals[a[j][0]]=(totals[a[j][0]]||0)+q*a[j][1]/a[j][2];
   }
   return totals;
 }
-function fmt(n){ if(Math.abs(n-Math.round(n))<1e-10) return String(Math.round(n)); return n.toFixed(2).replace(".",","); }
-summaryButton.addEventListener("click",function(){
-  try{
-    var totals=calculate(), total=0; results.innerHTML="";
-    for(var i=0;i<DATA.factoryProducts.length;i++){
-      var name=DATA.factoryProducts[i], value=totals[name]||0; total+=value;
-      var row=document.createElement("div"); row.className="result";
-      var n=document.createElement("span"); n.textContent=name;
-      var v=document.createElement("strong"); v.textContent=fmt(value);
-      row.appendChild(n); row.appendChild(v); results.appendChild(row);
-    }
-    totalEl.textContent=fmt(total); errorBox.style.display="none";
-    summaryPanel.style.display="block"; summaryPanel.setAttribute("aria-hidden","false"); window.scrollTo(0,0);
-  }catch(e){ errorBox.textContent="Hesaplama hatası: "+e.message; errorBox.style.display="block"; summaryPanel.style.display="block"; }
-});
-closeButton.addEventListener("click",function(){ summaryPanel.style.display="none"; summaryPanel.setAttribute("aria-hidden","true"); });
+function showSummary(){
+  var totals=calculate(), total=0; results.innerHTML="";
+  for(var i=0;i<DATA.factoryProducts.length;i++){
+    var n=DATA.factoryProducts[i], v=totals[n]||0; total+=v;
+    var row=document.createElement("div"); row.className="result";
+    var a=document.createElement("span"); a.textContent=n;
+    var b=document.createElement("strong"); b.textContent=fmt(v);
+    row.appendChild(a);row.appendChild(b);results.appendChild(row);
+  }
+  totalEl.textContent=fmt(total); panel.style.display="block"; window.scrollTo(0,0);
+}
+search.addEventListener("input",render);
+document.getElementById("summaryButton").addEventListener("click",showSummary);
+document.getElementById("closeButton").addEventListener("click",function(){panel.style.display="none";});
+render(); updateCount();
 })();
 </script>
 </body>
