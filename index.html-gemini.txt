@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yapı Kredi Taksit Takip</title>
+    
+    <!-- iOS App Ayarları (Tam Ekran Uygulama Görünümü) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Taksit Takip">
+
+    <style>
+        :root {
+            --primary: #00529c;
+            --bg: #f2f2f7;
+            --card-bg: #ffffff;
+            --text: #1c1c1e;
+            --subtext: #8e8e93;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding-bottom: 30px;
+        }
+
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 50px 20px 20px;
+            text-align: center;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0.8;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .header .total-amount {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        /* Ay Seçici Tablar */
+        .month-selector {
+            display: flex;
+            overflow-x: auto;
+            padding: 15px;
+            gap: 8px;
+            scroll-behavior: smooth;
+        }
+
+        .month-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        .month-btn {
+            background: var(--card-bg);
+            border: 1px solid #e5e5ea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .month-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Taksit Listesi */
+        .container {
+            padding: 0 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            margin-bottom: 15px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f2f2f7;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-size: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .item-amount {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .month-total-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border-left: 4px solid var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>YAPI KREDİ TOPLAM BORÇ</h1>
+        <div class="total-amount" id="grandTotal">0,00 TL</div>
+    </div>
+
+    <div class="month-selector" id="monthSelector"></div>
+
+    <div class="container">
+        <div class="card" id="expenseList"></div>
+
+        <div class="month-total-card">
+            <span>Aylık Toplam Ödeme</span>
+            <span id="monthTotal" style="color: var(--primary);">0,00 TL</span>
+        </div>
+    </div>
+
+    <script>
+        const months = ["AĞUSTOS", "EYLÜL", "EKİM", "KASIM", "ARALIK", "OCAK"];
+        
+        const expenses = [
+            { name: "GİYİM", amounts: { "AĞUSTOS": 584.50, "EYLÜL": 584.50, "EKİM": 584.50, "KASIM": 584.50 } },
+            { name: "DİGİTÜRK", amounts: { "AĞUSTOS": 447.06, "EYLÜL": 447.06, "EKİM": 447.06, "KASIM": 447.06, "ARALIK": 447.06 } },
+            { name: "KLAVYE", amounts: { "AĞUSTOS": 606.00, "EYLÜL": 606.00 } },
+            { name: "AYAKKABI", amounts: { "AĞUSTOS": 1951.33, "EYLÜL": 1951.33, "EKİM": 1951.33, "KASIM": 1951.33, "ARALIK": 1951.33 } },
+            { name: "trendyol", amounts: { "AĞUSTOS": 1597.97, "EYLÜL": 332.45, "EKİM": 332.45 } },
+            { name: "kığılı", amounts: { "AĞUSTOS": 2462.45, "EYLÜL": 2462.45, "EKİM": 2462.45, "KASIM": 2462.45, "ARALIK": 2462.45, "OCAK": 2462.45 } },
+            { name: "kulaklık", amounts: { "AĞUSTOS": 1074.50, "EYLÜL": 1074.50 } },
+            { name: "TELEVİZYON", amounts: { "AĞUSTOS": 944.13, "EYLÜL": 13500.00 } }
+        ];
+
+        let selectedMonth = "AĞUSTOS";
+
+        function formatTL(value) {
+            return value.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " TL";
+        }
+
+        function init() {
+            // Genel Toplam Hesapla
+            let grandTotal = 0;
+            expenses.forEach(item => {
+                Object.values(item.amounts).forEach(val => grandTotal += val);
+            });
+            document.getElementById('grandTotal').innerText = formatTL(grandTotal);
+
+            // Ay Butonlarını Oluştur
+            const monthSelector = document.getElementById('monthSelector');
+            months.forEach(month => {
+                const btn = document.createElement('button');
+                btn.className = `month-btn ${month === selectedMonth ? 'active' : ''}`;
+                btn.innerText = month;
+                btn.onclick = () => selectMonth(month);
+                monthSelector.appendChild(btn);
+            });
+
+            renderList();
+        }
+
+        function selectMonth(month) {
+            selectedMonth = month;
+            document.querySelectorAll('.month-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText === month);
+            });
+            renderList();
+        }
+
+        function renderList() {
+            const listContainer = document.getElementById('expenseList');
+            listContainer.innerHTML = '';
+            let monthTotal = 0;
+
+            expenses.forEach(item => {
+                if (item.amounts[selectedMonth]) {
+                    const amount = item.amounts[selectedMonth];
+                    monthTotal += amount;
+
+                    const row = document.createElement('div');
+                    row.className = 'list-item';
+                    row.innerHTML = `
+                        <span class="item-name">${item.name}</span>
+                        <span class="item-amount">${formatTL(amount)}</span>
+                    `;
+                    listContainer.appendChild(row);
+                }
+            });
+
+            document.getElementById('monthTotal').innerText = formatTL(monthTotal);
+        }
+
+        init();
+    </script>
+</body>
+</html>
